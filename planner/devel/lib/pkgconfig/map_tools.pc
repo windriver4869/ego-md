@@ -1,0 +1,8 @@
+prefix=/home/bingoling/Desktop/planner/devel
+
+Name: map_tools
+Description: Description of map_tools
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

@@ -1,0 +1,29 @@
+<launch>
+  <arg name="map_file" default="$(find map_tools)/maps/map.yaml"/>
+  <arg name="rviz_config" default="$(find ego_planner)/launch/default.rviz"/>
+
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen"/>
+
+  <node name="map_to_pc2" pkg="map_tools" type="map_to_pc2.py" output="screen" respawn="true">
+    <param name="frame_id" value="map"/>
+  </node>
+
+  <node name="fake_odom" pkg="map_tools" type="fake_odom.py" output="screen">
+    <param name="frame_id" value="odom"/>
+    <param name="child_frame_id" value="base_link"/>
+    <param name="odom_topic" value="/odom_world"/>
+    <param name="fixed_z" value="0.2"/>
+    <param name="max_linear_vel" value="0.8"/>
+    <param name="max_angular_vel" value="1.5"/>
+  </node>
+
+  <!-- Keep the planner, odometry and RViz in one connected TF tree. -->
+  <node name="map_to_world" pkg="tf2_ros" type="static_transform_publisher"
+        args="0 0 0 0 0 0 map world"/>
+  <node name="map_to_odom" pkg="tf2_ros" type="static_transform_publisher"
+        args="0 0 0 0 0 0 map odom"/>
+
+  <include file="$(find ego_planner)/launch/run_in_sim.launch"/>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rviz_config)" output="screen"/>
+</launch>
