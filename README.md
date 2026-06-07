@@ -64,3 +64,37 @@
 ## 3️⃣ 核心话题数据流
 
 **地图流**
+map_server → /map → /static_map → map_to_pc2 → /map_generator/global_cloud → ego_planner_node/grid_map
+**规划流**
+/odom_world + /waypoint_generator/waypoints + /map_generator/global_cloud
+→ ego_planner_node → /planning/bspline
+**控制流**
+/planning/bspline + /odom_world → traj_server → /cmd_vel → fake_odom 或真实底盘
+**反馈流**
+/cmd_vel → fake_odom → /odom_world → ego_planner_node + traj_server + waypoint_generator
+
+
+---
+
+## 4️⃣ TF 坐标系接口
+
+| TF | 发布者 | 作用 |
+|----|-------|----|
+| map → world | map_to_world | 兼容 world 坐标系，RViz Fixed Frame 使用 map |
+| map → odom | map_to_odom | 连接地图和里程计，保证 TF 连通 |
+| odom → base_link | fake_odom | 表示机器人在 odom 下的位姿 |
+
+建议 RViz Fixed Frame 设置为 **map**。
+
+---
+
+## 5️⃣ 外部接口
+
+| 类型 | 接口 | 来源 | 作用 | 说明 |
+|------|------|------|------|------|
+| 地图 | /map | map_server | 二维占据地图 | 可替换为 SLAM 地图 |
+| 地图服务 | /static_map | map_server | 提供一次性地图 | map_to_pc2 订阅此服务 |
+| 里程计 | /odom_world | fake_odom | 提供机器人位姿 | 可替换为真实里程计或 SLAM 输出 |
+| 目标点 | /waypoint_generator/waypoints | waypoint_generator | 规划目标 | RViz 交互或预设路径 |
+| 目标姿态 | /initialpose | RViz 2D Pose Estimate | 重置机器人起点 | fake_odom 会根据此设置位姿 |
+| 控制 | /cmd_vel | traj_server | 输出速度指令 | 底盘订阅 geometry_msgs/Twist |
